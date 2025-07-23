@@ -1,0 +1,268 @@
+{
+  "name": "Demo: My first AI Agent in n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "08ea7269-7933-40c0-9979-fa0372a0313f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n    \"reviews\": [\n        {\n            \"id\": \"rev001\",\n            \"asin\": \"TESTASIN123\",\n            \"text\": \"The kettle broke after two weeks. Really disappointed.\"\n        },\n        {\n            \"id\": \"rev002\",\n            \"asin\": \"TESTASIN123\",\n            \"text\": \"Works perfectly, no issues so far. Heats up fast.\"\n        },\n        {\n            \"id\": \"rev003\",\n            \"asin\": \"TESTASIN123\",\n            \"text\": \"It leaks water when I pour it. Dangerous.\"\n        }\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7ddaccda-3db9-4c0c-af6c-1218212497fa",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Input data is usually available as items array\nconst review = {\n  id: \"rev001\",\n  asin: \"TESTASIN123\",\n  text: \"The kettle broke after two weeks. Really disappointed.\"\n};\n\nfunction classifyReview(review) {\n  const text = (review.text || \"\").toLowerCase();\n  let sentiment = \"positive\";\n  let severity = 0;\n  let issue = \"other\";\n\n  if (text.includes(\"broke\")) {\n    sentiment = \"negative\";\n    severity = 7;\n    issue = \"broken\";\n  } else if (text.includes(\"leaks\") || text.includes(\"leak\")) {\n    sentiment = \"negative\";\n    severity = 6;\n    issue = \"leaking\";\n  }\n\n  return {\n    ...review,\n    sentiment,\n    severity,\n    issue\n  };\n}\n\nconst classified = classifyReview(review);\n\n// Output the result as an array of items for n8n\nreturn { json: classified };\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5c659883-cd96-423f-b1e1-f77674d82084",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f3955d33-b8f9-4ab2-89c9-5e3832a3293a",
+              "leftValue": "sentiment",
+              "rightValue": "negative",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8ea42133-d4fd-4b44-9d5c-06ba3b5b0271",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "15j3m1lloUj8iXq-PGgCEztASJpob6bkEQX2d9nwEBMg",
+          "mode": "list",
+          "cachedResultName": "AmazonReviewAnalysis",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15j3m1lloUj8iXq-PGgCEztASJpob6bkEQX2d9nwEBMg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15j3m1lloUj8iXq-PGgCEztASJpob6bkEQX2d9nwEBMg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $json.id }}",
+            "ASIN": "={{ $json.asin }}",
+            "Text": "={{ $json.text}}",
+            "Sentiment": "={{ $json[\"sentiment\"] }}",
+            "Severity": "={{ $json[\"severity\"] }}",
+            "Issue": "={{ $json[\"issue\"] }}",
+            "Timestamp": "00:00:00"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ASIN",
+              "displayName": "ASIN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Text",
+              "displayName": "Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Severity",
+              "displayName": "Severity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Issue",
+              "displayName": "Issue",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        832,
+        16
+      ],
+      "id": "718c0293-570d-4c30-8b7a-068a751952dd",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "eovJsjWWS6OuEtFf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fe548214-dc1a-4084-96a0-42ec438dd776",
+  "meta": {
+    "templateId": "self-building-ai-agent",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3b8f1fb63e3108c15d75e6c1a5cc4d9f10b6df870f6f703c79c1cb8e4a348494"
+  },
+  "id": "Xssv3FTrhB8KTvzx",
+  "tags": []
+}
